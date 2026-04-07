@@ -1,0 +1,64 @@
+package com.aggelos;
+
+import javafx.application.Application;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.Scene;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
+import javafx.stage.Stage;
+import java.io.IOException;
+
+
+public class Main extends Application {
+    private Api api;
+    @Override
+    public void start(Stage primaryStage) throws IOException {
+        api = new Api();
+
+        Api.ApiResponse formats = api.getFormats();
+        Api.ApiResponse resolutions = api.getResolutions();
+
+        System.out.println("Form " + formats.getData());
+        System.out.println("Res " + resolutions.getData());
+
+
+        Label label = new Label("Hello, JavaFX!");
+
+        ObservableList<String> formatOptions = FXCollections.observableArrayList(formats.getData());
+        ComboBox<String> formatPicker = new ComboBox<>(formatOptions);
+
+        ObservableList<String> resolutionOptions = FXCollections.observableArrayList(resolutions.getData());
+        ComboBox<String> resolutionPicker = new ComboBox<>(resolutionOptions);
+
+        HBox pickersRow = new HBox(10);
+        pickersRow.setAlignment(Pos.CENTER);
+        pickersRow.getChildren().addAll(formatPicker, resolutionPicker);
+
+        VBox root = new VBox(10);
+        root.setAlignment(Pos.TOP_CENTER);
+        root.setPadding(new Insets(20));
+        root.getChildren().addAll(label, pickersRow);
+
+        Scene scene = new Scene(root, 400, 300);
+        primaryStage.setTitle("Streaming Client");
+        primaryStage.setScene(scene);
+        primaryStage.show();
+    }
+
+    @Override
+    public void stop() throws Exception{
+        if(api != null){
+            api.closeConnection();
+        }
+    }
+
+    public static void main(String[] args) throws IOException {
+        launch(args);
+    }
+}
