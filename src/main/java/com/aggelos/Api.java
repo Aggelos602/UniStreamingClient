@@ -28,22 +28,18 @@ public class Api {
         @SerializedName("status")
         private String status;
 
-        public List<String> getData() {
-            return data;
-        }
+        @SerializedName("message")
+        private String message;
 
-        public String getStatus() {
-            return status;
-        }
+
+        public List<String> getData() { return data; }
+        public String getStatus() { return status; }
+        public String getMessage() { return message; }
     }
 
     static ApiResponse ConvertToJson(String resp){
-        resp = resp.replace('=', ':');
-        resp = resp.replaceAll("([a-zA-Z0-9]+)(?=[:,])", "\"$1\"");
-
         Gson gson = new Gson();
-
-        return gson.fromJson(resp, (Type) ApiResponse.class);
+        return gson.fromJson(resp, ApiResponse.class);
     }
 
     public ApiResponse Get(String path) throws IOException {
@@ -55,7 +51,7 @@ public class Api {
         return ConvertToJson(in.readLine());
     }
 
-    public ApiResponse Post(String path, List<String> body) throws IOException {
+    public void Post(String path, Map<String, Object> body) throws IOException {
         BufferedReader in = new BufferedReader(
                 new InputStreamReader(socket.getInputStream()));
         PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
@@ -69,7 +65,8 @@ public class Api {
         String json = gson.toJson(payload);
         out.println(json);
 
-        return ConvertToJson(in.readLine());
+        String t = in.readLine().toString();
+        System.out.println("T " + t);
     }
 
     public void closeConnection() throws IOException{

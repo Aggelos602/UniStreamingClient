@@ -45,15 +45,11 @@ public class Main extends Application {
         pickersRow.getChildren().addAll(formatPicker, resolutionPicker);
 
         Button postButton = new Button("Start Stream");
-        List<String> data = new ArrayList<>();
+        Map<String, Object> data = new HashMap<>();
         postButton.setOnAction(e -> {
-            Map<String, Object> item1 = new HashMap<>();
-            item1.put("format", formatPicker.getValue());
-            Map<String, Object> item2 = new HashMap<>();
-            item2.put("resolution", resolutionPicker.getValue());
-
-            data.add(item1.toString());
-            data.add(item2.toString());
+            data.put("format", formatPicker.getValue());
+            data.put("resolution", resolutionPicker.getValue());
+            data.put("videoName", "video1.mp4");
 
             try {
                 api.Post("startStreaming", data);
