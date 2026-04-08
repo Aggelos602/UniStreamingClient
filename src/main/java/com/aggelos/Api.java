@@ -3,7 +3,9 @@ package com.aggelos;
 import java.io.*;
 import java.lang.reflect.Type;
 import java.net.Socket;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.google.gson.Gson;
 import com.google.gson.annotations.SerializedName;
@@ -35,29 +37,39 @@ public class Api {
         }
     }
 
-    public ApiResponse getFormats() throws IOException {
-        return Wrapper("getFormats");
+    static ApiResponse ConvertToJson(String resp){
+        resp = resp.replace('=', ':');
+        resp = resp.replaceAll("([a-zA-Z0-9]+)(?=[:,])", "\"$1\"");
+
+        Gson gson = new Gson();
+
+        return gson.fromJson(resp, (Type) ApiResponse.class);
     }
 
-    public ApiResponse getResolutions() throws IOException {
-        return Wrapper("getResolutions");
-    }
-
-    private ApiResponse Wrapper(String path) throws IOException {
+    public ApiResponse Get(String path) throws IOException {
         BufferedReader in = new BufferedReader(
                 new InputStreamReader(socket.getInputStream()));
         PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
 
-        out.println("{\"action\":\"" + path + "\"}");
-        String response = in.readLine();
+        out.println("{\"method\": \"get\", \"path\": \"" + path + "\"}");
+        return ConvertToJson(in.readLine());
+    }
 
-        response = response.replace('=', ':');
-        response = response.replaceAll("([a-zA-Z0-9]+)(?=[:,])", "\"$1\"");
+    public ApiResponse Post(String path, List<String> body) throws IOException {
+        BufferedReader in = new BufferedReader(
+                new InputStreamReader(socket.getInputStream()));
+        PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("method", "post");
+        payload.put("path", path);
+        payload.put("body", body);
 
         Gson gson = new Gson();
+        String json = gson.toJson(payload);
+        out.println(json);
 
-        return gson.fromJson(response, (Type) ApiResponse.class);
-
+        return ConvertToJson(in.readLine());
     }
 
     public void closeConnection() throws IOException{

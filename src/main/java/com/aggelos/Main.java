@@ -6,13 +6,17 @@ import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 
 public class Main extends Application {
@@ -21,8 +25,8 @@ public class Main extends Application {
     public void start(Stage primaryStage) throws IOException {
         api = new Api();
 
-        Api.ApiResponse formats = api.getFormats();
-        Api.ApiResponse resolutions = api.getResolutions();
+        Api.ApiResponse formats = api.Get("getFormats");
+        Api.ApiResponse resolutions = api.Get("getResolutions");
 
         System.out.println("Form " + formats.getData());
         System.out.println("Res " + resolutions.getData());
@@ -40,10 +44,32 @@ public class Main extends Application {
         pickersRow.setAlignment(Pos.CENTER);
         pickersRow.getChildren().addAll(formatPicker, resolutionPicker);
 
+        Button postButton = new Button("Start Stream");
+        List<String> data = new ArrayList<>();
+        postButton.setOnAction(e -> {
+            Map<String, Object> item1 = new HashMap<>();
+            item1.put("format", formatPicker.getValue());
+            Map<String, Object> item2 = new HashMap<>();
+            item2.put("resolution", resolutionPicker.getValue());
+
+            data.add(item1.toString());
+            data.add(item2.toString());
+
+            try {
+                api.Post("startStreaming", data);
+            } catch (IOException ex) {
+                throw new RuntimeException(ex);
+            }
+        });
+
+        HBox buttonRow = new HBox(10);
+        buttonRow.setAlignment(Pos.CENTER);
+        buttonRow.getChildren().addAll(postButton);
+
         VBox root = new VBox(10);
         root.setAlignment(Pos.TOP_CENTER);
         root.setPadding(new Insets(20));
-        root.getChildren().addAll(label, pickersRow);
+        root.getChildren().addAll(label, pickersRow, buttonRow);
 
         Scene scene = new Scene(root, 400, 300);
         primaryStage.setTitle("Streaming Client");
@@ -56,9 +82,5 @@ public class Main extends Application {
         if(api != null){
             api.closeConnection();
         }
-    }
-
-    public static void main(String[] args) throws IOException {
-        launch(args);
     }
 }
